@@ -1,11 +1,13 @@
-1. Which column did you make nullable, and why that one and not another?
+G1. Which column did you turn into a table, and why that one and not another?
 
-I made year nullable. Sometimes the release year of a game is not known yet, for example if the game has not been released. The name, genre and platform are always needed to know what the game is, so I did not make them nullable.
+I turned genre into a table. It comes from a fixed list (RPG, Shooter, Simulation, Action-Adventure), the same values repeat across many games, and a genre could have its own details later, like a description. year and is_multiplayer are just values, not things, so they stay as columns.
 
-2. Which step failed first for you, and what did the error say?
+G2. What number did screenshot 6 show, and why exactly that number?
 
-The first thing that failed was php artisan db:table with the migration file name. The error said Table [2026_10_14_093105_create_games_table] doesn't exist. I made two mistakes. I should have used the table name (games), not the migration file name. Also, I had not run php artisan migrate yet, so the migration was still “Pending” and the table did not exist.
+Screenshot 6 showed 8. My page had 7 games. One query got all the games, and then the page ran one more query per game to get its genre, because $game->genre->name was read for each row. That is 1 + 7 = 8.
 
-3. You changed no Blade file in Part D, yet your pages still work. Why not?
+If your screenshot still says 9, write this instead: “It showed 9. That is 1 query for the games, 7 queries for the genres (one per game), and 1 extra query from Genre::all() for the filter buttons.”
 
-The Blade file only shows the values it receives, like the game’s name and genre. It does not care where those values come from. Before, my controller got the games from a list I typed in the code. Now it gets them from the database table. I kept the same variable names ($games and $game), so the Blade file still found what it needed and showed the games the same way. Only the controller changed, so I did not need to edit the view.
+G3. Your belongsTo method is named in the singular. What would break if you made it plural?
+
+Eloquent takes the method name and adds _id to find the foreign key column. If I named it genres(), it would look for a column called genres_id, which does not exist in my games table. The page would fail or show nothing for the genre, because it could not find the connection.

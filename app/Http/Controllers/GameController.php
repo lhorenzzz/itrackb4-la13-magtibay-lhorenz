@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Game;
+use App\Models\Genre;
+use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
@@ -34,22 +36,26 @@ class GameController extends Controller
     //i still have the Request since im still using the filter buttons if its remove it will not work
     //so that we can read the ?genre parameter if remove, it will say missing $genre on view
     {
+        $genres = Genre::all();
 
         //take genre on the url
         $genre = $request->query('genre', '');
         $platform = $request->query('platform', '');
 
+
+        DB::enableQueryLog(); // Enable query logging
+
         //search on games table
-        $query = Game::query();
+        $query = Game::with('genre');
 
         //if genre then only genre
-        if ($genre != '') {
-            $query->where('genre', $genre);
+        if ($genre) {
+            $query = $query->where('genre_id', $genre);
         }
 
         //if platform then only platform
-        if ($platform != '') {
-            $query->where('platform', $platform);
+        if ($platform) {
+            $query = $query->where('platform', $platform);
         }
 
         //get all games in the table
@@ -59,68 +65,27 @@ class GameController extends Controller
             'games' => $games,
             'genre' => $genre,
             'platform' => $platform,
-            'genres' => ['Action-Adventure', 'RPG', 'Simulation', 'Shooter'],
+            'genres' => $genres,
             'platforms' => ['PC', 'PlayStation', 'Xbox', 'Nintendo Switch'],
         ]);
-
-        // $games = Game::all();
-        // return view('games.index', compact('games'));
-
-        // $games = $this->games();
-
-        // $genre = $request->query('genre', 'all');
-        // $platform = $request->query('platform', 'all');
-        // $year = $request->query('year', 'all');
-        // $is_multiplayer = $request->query('is_multiplayer', 'all');
-
-        // $filtered = collect($games)->filter(function ($game) use ($genre, $platform, $year, $is_multiplayer) {
-        //     $matchGenre = $genre == 'all' || $game['genre'] == $genre;
-        //     $matchPlatform = $platform == 'all' || $game['platform'] == $platform;
-        //     $year = $year == 'all' || $game['year'] == $year;
-        //     $is_multiplayer = $is_multiplayer == 'all' || $game['is_multiplayer'] == ($is_multiplayer === 'true');
-
-        //     return $matchGenre && $matchPlatform && $year && $is_multiplayer;
-        // });
-
-        // return view('games.index', [
-        //     'games' => $filtered,
-        //     'genre' => $genre ?? '',
-        //     'platform' => $platform ?? '',
-        //     'genres' => collect($games)->pluck('genre')->unique()->values(),
-        //     'platforms' => collect($games)->pluck('platform')->unique()->values(),
-        //     'year' => collect($games)->pluck('year')->unique()->values(),
-        //     'is_multiplayer' => collect($games)->pluck('is_multiplayer')->unique()->values(),
-        // ]);
     }
 
     public function create()
     {
-        return view('games.create');
+        return view('games.create', ['genres' => Genre::all(),]);
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|max:50',
-            'genre' => 'required|in:Action-Adventure,RPG,Simulation,Shooter',
+            'genre_id' => 'required|exists:genres,id',
             'platform' => 'required|in:PC,PlayStation,Xbox,Nintendo Switch',
             'year' => 'required|integer|min:1970|max:' . date('Y'),
             'is_multiplayer' => 'required|boolean',
-
         ]);
 
-        $games = $this->games();
-        $newId = count($games) + 1;
-        $games[$newId] = [
-            'id' => $newId,
-            'name' => $validatedData['name'],
-            'genre' => $validatedData['genre'],
-            'platform' => $validatedData['platform'],
-            'year' => $validatedData['year'],
-            'is_multiplayer' => $validatedData['is_multiplayer'],
-        ];
-
-        $this->saveGames($games);
+        Game::create($validated);
 
         return redirect()->route('games.index')->with('success', 'Game created successfully!');
     }
@@ -157,14 +122,13 @@ class GameController extends Controller
 
     public function featured()
     {
-       $game = Game::findOrFail(1);
-       return view('games.show', compact('game'));
+        $game = Game::findOrFail(1);
+        return view('games.show', compact('game'));
     }
 
     public function favorite()
     {
         $game = Game::findOrFail(2);
         return view('games.show', compact('game'));
-
     }
 }
