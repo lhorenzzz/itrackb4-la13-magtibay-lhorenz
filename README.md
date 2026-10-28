@@ -1,13 +1,15 @@
-G1. Which column did you turn into a table, and why that one and not another?
 
-I turned genre into a table. It comes from a fixed list (RPG, Shooter, Simulation, Action-Adventure), the same values repeat across many games, and a genre could have its own details later, like a description. year and is_multiplayer are just values, not things, so they stay as columns.
+#
+Question
+G1
+Route model binding needs two things to be true. Name both, and say what happens when only one of them is.
+- Route model binding needs two things: the route parameter name must match the controller variable name ({game} and $game), and the variable must be type-hinted with the Eloquent model (Game $game). If the name matches but there is no type-hint, Laravel gives you the plain ID, not a model. If the type-hint is there but the names don’t match, Laravel can’t link the ID, so you get an empty Game object instead of the record.
 
-G2. What number did screenshot 6 show, and why exactly that number?
 
-Screenshot 6 showed 8. My page had 7 games. One query got all the games, and then the page ran one more query per game to get its genre, because $game->genre->name was read for each row. That is 1 + 7 = 8.
+G2
+Your Delete link gave a 404 even though the address was correct. Explain why.
+- The address /games/{id} was correct, but the link gave a 404 because no game exists with ID 99999. Route model binding looks for the record, finds nothing, and Laravel returns 404 automatically. With a real ID, the link just opens the show page, because a link sends GET, not DELETE.
 
-If your screenshot still says 9, write this instead: “It showed 9. That is 1 query for the games, 7 queries for the genres (one per game), and 1 extra query from Genre::all() for the filter buttons.”
-
-G3. Your belongsTo method is named in the singular. What would break if you made it plural?
-
-Eloquent takes the method name and adds _id to find the foreign key column. If I named it genres(), it would look for a column called genres_id, which does not exist in my games table. The page would fail or show nothing for the genre, because it could not find the connection.
+G3
+old() takes a second argument on your edit form. What would break if you left it out, and what would break if you used only it?
+- In old('title', $game->title), the second argument is the default value, the saved data from the database. If you leave it out, the edit form opens with empty fields because there is nothing to show. If you use only it (just $game->title with no old()), the form works on first load, but after a validation error it goes back to the database value and the user’s new input is lost.

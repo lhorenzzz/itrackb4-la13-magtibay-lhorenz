@@ -91,33 +91,42 @@ class GameController extends Controller
     }
 
 
-    public function show($id)
+    public function show(Game $game)
     {
-        $game = Game::findOrFail($id);
+        // $game = Game::findOrFail($id);
         return view('games.show', compact('game'));
 
-        // $games = $this->games();
 
-        // if (!isset($games[$id])) {
-        //     abort(404);
-        // }
-        // return view('games.show', ['game' => $games[$id]]);
+
+    }
+
+    public function edit(Game $game)
+    {
+        $genres = Genre::all();
+        return view('games.edit', compact('game', 'genres'));
+    }
+
+    public function update(Request $request, Game $game)
+    {
+        $validated = $request->validate([
+            'name' => 'required|max:50',
+            'genre_id' => 'required|exists:genres,id',
+            'platform' => 'required|in:PC,PlayStation,Xbox,Nintendo Switch',
+            'year' => 'required|integer|min:1970|max:' . date('Y'),
+            'is_multiplayer' => 'required|boolean',
+        ]);
+
+        $game->update($validated);
+
+        return redirect()->route('games.index')->with('success', 'Game updated successfully!');
     }
 
 
-    public function edit(string $id)
+    public function destroy(Game $game)
     {
-        //
-    }
+        $game->delete();
 
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    public function destroy(string $id)
-    {
-        //
+        return redirect()->route('games.index')->with('success', 'Game deleted successfully!');
     }
 
     public function featured()

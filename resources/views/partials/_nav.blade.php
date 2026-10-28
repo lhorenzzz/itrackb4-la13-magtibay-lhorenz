@@ -1,11 +1,11 @@
 <nav>
     <br>
-    {{-- Books --}}
+    {{-- Books
     <button type="button" class="btn {{ request()->is('books*') ? 'btn-warning' : 'btn-primary' }}">
         <a href="{{ route('books.index') }}" style="color: white; text-decoration: none;">Books</a>
     </button>
 
-    {{-- Teachers --}}
+    {{-- Teachers
     <button type="button" class="btn {{ request()->is('teachers*') ? 'btn-warning' : 'btn-primary' }}">
         <a href="{{ route('teachers.index') }}" style="color: white; text-decoration: none;">Teachers</a>
     </button>

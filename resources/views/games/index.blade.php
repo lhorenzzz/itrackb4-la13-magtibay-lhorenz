@@ -62,6 +62,7 @@
                 <th>Genre</th>
                 <th>Platform</th>
                 <th>Year</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -81,10 +82,18 @@
                     </td>
                     <td>{{ $game->platform }}</td>
                     <td>{{ $game->year }}</td>
+                    <td>
+                        <form action="{{ route('games.destroy', $game) }}" method="POST"
+                            onsubmit="return confirm('Delete this record?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5">No Games Available</td>
+                    <td colspan="6">No Games Available</td>
                 </tr>
             @endforelse
         </tbody>
