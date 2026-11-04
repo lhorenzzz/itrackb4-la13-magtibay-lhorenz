@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Game;
 use App\Models\Genre;
@@ -85,19 +85,21 @@ class GameController extends Controller
             'is_multiplayer' => 'required|boolean',
         ]);
 
-        Game::create($validated);
+        $game = Game::create($validated);
+
+        Log::info('Game saved', [
+            'id' => $game->id,
+        ]);
 
         return redirect()->route('games.index')->with('success', 'Game created successfully!');
     }
+
 
 
     public function show(Game $game)
     {
         // $game = Game::findOrFail($id);
         return view('games.show', compact('game'));
-
-
-
     }
 
     public function edit(Game $game)
@@ -124,6 +126,7 @@ class GameController extends Controller
 
     public function destroy(Game $game)
     {
+        abort_if($game->genre->games()->count() === 1, 403, 'Cannot delete a genre that has more than one game.');
         $game->delete();
 
         return redirect()->route('games.index')->with('success', 'Game deleted successfully!');
