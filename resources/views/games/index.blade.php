@@ -32,27 +32,40 @@
         <a href="{{ route('games.create') }}" class="btn btn-sm btn-outline-secondary ms-2">Add Game</a>
     </div>
 
-    {{-- Genre buttons: dala ang kasalukuyang platform para hindi mawala --}}
-    <div class="mb-2">
-        <strong>Genre:</strong>
-        <a href="{{ route('games.index', ['genre' => '', 'platform' => $platform]) }}"
-            class="btn btn-sm btn-outline-primary">All</a>
-        @foreach ($genres as $g)
-            <a href="{{ route('games.index', ['genre' => $g->id, 'platform' => $platform]) }}"
-                class="btn btn-sm btn-outline-primary">{{ $g->name }}</a>
-        @endforeach
-    </div>
+    {{-- method="GET" = napupunta sa URL ang mga pinili, kaya pwedeng i-bookmark (H1) --}}
+    <form method="GET" action="{{ route('games.index') }}" class="row g-2 mb-3">
 
-    {{-- Platform buttons: dala ang kasalukuyang genre --}}
-    <div class="mb-3">
-        <strong>Platform:</strong>
-        <a href="{{ route('games.index', ['genre' => $genre, 'platform' => '']) }}"
-            class="btn btn-sm btn-outline-secondary">All</a>
-        @foreach ($platforms as $p)
-            <a href="{{ route('games.index', ['genre' => $genre, 'platform' => $p]) }}"
-                class="btn btn-sm btn-outline-secondary">{{ $p }}</a>
-        @endforeach
-    </div>
+        {{-- Search box. request('search') = ibinabalik ang tinype pagkatapos mag-reload (H5) --}}
+        <div class="col-md-4">
+            <input type="text" name="search" class="form-control" placeholder="Search by name"
+                value="{{ request('search') }}">
+        </div>
+
+        {{-- Genre dropdown. Ang value ay id, ang text ay name. --}}
+        <div class="col-md-3">
+            <select name="genre" class="form-select">
+                <option value="">All genres</option>
+                @foreach ($genres as $g)
+                    <option value="{{ $g->id }}" @selected(request('genre') == $g->id)>{{ $g->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- Boolean dropdown. Gamit ang === '1' at '0' (string) para magkaiba ang "No" at "Any" --}}
+        <div class="col-md-3">
+            <select name="is_multiplayer" class="form-select">
+                <option value="">Any</option>
+                <option value="1" @selected(request('is_multiplayer') === '1')>Multiplayer</option>
+                <option value="0" @selected(request('is_multiplayer') === '0')>Single-player</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <button class="btn btn-primary">Apply</button>
+            {{-- Clear = bumabalik sa list na walang kahit anong query (H7) --}}
+            <a href="{{ route('games.index') }}" class="btn btn-outline-secondary">Clear</a>
+        </div>
+    </form>
 
     <table class="table table-striped">
         <thead>
@@ -83,12 +96,21 @@
                     <td>{{ $game->platform }}</td>
                     <td>{{ $game->year }}</td>
                     <td>
-                        <form action="{{ route('games.destroy', $game) }}" method="POST"
-                            onsubmit="return confirm('Delete this record?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
+                        {{-- d-flex gap-1 = ilalagay nang magkatabi ang Edit at Delete, may konting espasyo --}}
+                        <div class="d-flex gap-1">
+
+                            {{-- route('games.edit', $game) = papunta sa /games/{id}/edit. $game ang laro sa row na ito.
+                            Ito ay GET na link, kaya OK lang ang <a>. --}}
+                                <a href="{{ route('games.edit', $game) }}" class="btn btn-warning btn-sm">Edit</a>
+
+                                {{-- Delete: form na may @method('DELETE'), kasi hindi kayang magpadala ng DELETE ng link --}}
+                                <form action="{{ route('games.destroy', $game) }}" method="POST"
+                                    onsubmit="return confirm('Delete this record?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                        </div>
                     </td>
                 </tr>
             @empty
@@ -98,6 +120,6 @@
             @endforelse
         </tbody>
     </table>
+    {{ $games->links() }}
 
-    <p>Queries: {{ count(\Illuminate\Support\Facades\DB::getQueryLog()) }}</p>
 @endsection

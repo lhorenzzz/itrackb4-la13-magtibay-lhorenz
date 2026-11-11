@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Game;
 use App\Models\Genre;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\Paginator;
+
 
 class GameController extends Controller
 {
@@ -36,14 +39,17 @@ class GameController extends Controller
     //i still have the Request since im still using the filter buttons if its remove it will not work
     //so that we can read the ?genre parameter if remove, it will say missing $genre on view
     {
+
         $genres = Genre::all();
 
         //take genre on the url
         $genre = $request->query('genre', '');
         $platform = $request->query('platform', '');
 
-
-        DB::enableQueryLog(); // Enable query logging
+        $sort = $request->query('sort', 'name');
+        $allowedSorts = ['name', 'year', 'platform'];
+        $search = $request->query('search');
+        $multi = $request->query('is_multiplayer');
 
         //search on games table
         $query = Game::with('genre');
@@ -58,8 +64,23 @@ class GameController extends Controller
             $query = $query->where('platform', $platform);
         }
 
-        //get all games in the table
-        $games = $query->get();
+        if (! in_array($sort, $allowedSorts)) {
+            $sort = 'name';
+        }
+
+        // Search: hanapin ang text sa loob ng name column. like %...% = "naglalaman ng"
+        if ($search) {
+            $query = $query->where('name', 'like', "%{$search}%");
+        }
+
+        // TRAP: ang '0' ay falsy sa PHP, kaya hindi pwede ang simpleng if ($multi).
+        // Kaya tinitingnan natin kung may laman talaga (hindi null at hindi blangko).
+        if ($multi !== null && $multi !== '') {
+            $query = $query->where('is_multiplayer', $multi);
+        }
+
+        $query = $query->orderBy($sort);
+        $games = $query->paginate(8)->withQueryString();
 
         return view('games.index', [
             'games' => $games,

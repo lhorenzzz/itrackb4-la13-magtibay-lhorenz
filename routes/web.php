@@ -4,6 +4,7 @@ use App\Http\Controllers\TeacherController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\HomeController;
 
 // Route::get('/books/feature', [BookController::class, 'feature'])
 //     ->name('books.feature');
@@ -21,6 +22,9 @@ use App\Http\Controllers\GameController;
 
 // Route::resource('teachers', TeacherController::class)
 //      ->only(['index', 'show']);
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
 
 // Games
 // Route::get('/games/filter/{value?}', [GameController::class, 'filter'])->name('games.filter');
